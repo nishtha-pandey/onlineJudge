@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  # Backend Service
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - judge-engine
+    networks:
+      - onlinejudge-network
+
+  # Frontend Service
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080/api
+    depends_on:
+      - backend
+    networks:
+      - onlinejudge-network
+
+  # Judge Engine (Docker-in-Docker)
+  judge-engine:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile.judge
+    image: onlinejudge-judge:latest
+    command: ["bash"]
+    networks:
+      - onlinejudge-network
+
+networks:
+  onlinejudge-network:
+    driver: bridge
